@@ -108,7 +108,7 @@ else:  # Indirect Testing (BIC or CV)
 
     with col2:
         st.metric(label="Cross-Validation MSE", value=f"{mse_cv/1e6:.2f}M")  # Abbreviate to millions
-st.markdown("<h1 style='text-align: center;'>  </h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>  </h3>", unsafe_allow_html=True)
 
 # Visualization: Bar Chart for MSE Decomposition
 if evaluation_method == "Direct Testing (Train-Test Split)":

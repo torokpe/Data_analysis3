@@ -113,7 +113,6 @@ st.markdown("<h3 style='text-align: center;'>  </h3>", unsafe_allow_html=True)
 # Visualization: Bar Chart for MSE Decomposition
 if evaluation_method == "Direct Testing (Train-Test Split)":
     st.markdown("<h2 style='text-align: center;'> MSE Decomposition (Test Data) </h2>", unsafe_allow_html=True)
-    st.subheader("Bar Chart: MSE Decomposition (Test Data)")
     fig, ax = plt.subplots()
     labels = ["Bias²", "Variance", "Irreducible Error"]
     values = [bias_squared, variance, mse_test - bias_squared - variance]

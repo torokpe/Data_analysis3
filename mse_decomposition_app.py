@@ -82,7 +82,7 @@ else:  # Indirect Testing (BIC or Cross-Validation)
     mse_train, mse_test, bias_squared, variance = None, mse_cv, None, None
 
 # Display Metrics as Dashboard Highlights
-st.subheader("Model Performance Metrics")
+st.markdown("<h1 style='text-align: center;'>Key performance metrics</h1>", unsafe_allow_html=True)
 
 if evaluation_method == "Direct Testing (Train-Test Split)":
     # Row layout for metrics with increased column width

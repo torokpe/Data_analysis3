@@ -16,7 +16,7 @@ def load_data():
 df = load_data()
 
 # Sidebar: Add a title and description
-st.markdown("<h1 style='text-align: center;'>Model Performance & MSE Decomposition </h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Model Performance & MSE Decomposition \n </h1>", unsafe_allow_html=True)
 st.markdown("<h1 style='text-align: center;'>  </h1>", unsafe_allow_html=True)
 
 st.sidebar.write("Use the dropdown and filters below to analyze different models and subsets of the data.")

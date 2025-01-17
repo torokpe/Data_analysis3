@@ -7,41 +7,46 @@ import matplotlib.pyplot as plt
 # Load dataset from GitHub
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"  # Replace with your GitHub link
+    url = "https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"
     return pd.read_csv(url)
 
 df = load_data()
 
-# Display dataset
-st.title("MSE Decomposition: Bias and Variance Analysis")
-st.write("Dataset Preview")
-st.dataframe(df.head())
+# Sidebar: Add a title and description
+st.sidebar.title("Interactive Dashboard")
+st.sidebar.write("Use the dropdown and filters below to analyze different models and subsets of the data.")
 
-# Define model formulas
+# Sidebar: Interactive Model Selection
 model_formulas = {
     "Model 1: House_Price ~ Square_Footage": "House_Price ~ Square_Footage",
     "Model 2: House_Price ~ Square_Footage + Num_Bedrooms + Num_Bathrooms": "House_Price ~ Square_Footage + Num_Bedrooms + Num_Bathrooms",
     "Model 3: House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size": "House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size"
 }
-
-# Sidebar: Interactive Model Selection
-st.sidebar.header("Interactive Dashboard")
 selected_model = st.sidebar.selectbox("Choose a model:", list(model_formulas.keys()))
 selected_formula = model_formulas[selected_model]
 
-# Sidebar: Filtering
-st.sidebar.header("Data Filters")
+# Sidebar: Filtering by Year_Built
 min_year_built = st.sidebar.slider(
-    "Minimum Year Built", 
-    int(df["Year_Built"].min()), 
-    int(df["Year_Built"].max()), 
+    "Minimum Year Built",
+    int(df["Year_Built"].min()),
+    int(df["Year_Built"].max()),
     int(df["Year_Built"].min())
 )
 filtered_df = df[df["Year_Built"] >= min_year_built]
 
+# Sidebar: Checkbox to show filtered data
+if st.sidebar.checkbox("Show Filtered Data"):
+    st.subheader("Filtered Dataset")
+    st.dataframe(filtered_df)
+
 # Fit the selected model using filtered data
 model = smf.ols(formula=selected_formula, data=filtered_df).fit()
 filtered_df["Predicted"] = model.fittedvalues
+
+# Main Title and Dataset Preview
+st.title("MSE Decomposition: Bias and Variance Analysis")
+st.write("Dataset Preview")
+st.dataframe(df.head())
 
 # Show model summary
 st.subheader(f"Model Summary: {selected_model}")
@@ -99,8 +104,3 @@ plt.title("Residual Plot")
 plt.xlabel("Predicted Prices")
 plt.ylabel("Residuals")
 st.pyplot(plt)
-
-# Sidebar: Display filtered data
-if st.sidebar.checkbox("Show Filtered Data"):
-    st.subheader("Filtered Dataset")
-    st.dataframe(filtered_df)

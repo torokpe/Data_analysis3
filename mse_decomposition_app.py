@@ -1,62 +1,95 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 
-df = pd.read_csv('https://storage.googleapis.com/kagglesdsdata/datasets/5656167/9334344/house_price_regression_dataset.csv?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20250117%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250117T141127Z&X-Goog-Expires=259200&X-Goog-SignedHeaders=host&X-Goog-Signature=7355844dafbd6ff14cc019d15a8d613dfbc2b16a7c76fd7e494dd86efa5c77829dc432f2c1eee38004992da184da2996132be68e403b40912a232ce869f2ee446ec9f34f41270eeb5139c533e04ff032f8a30fd4d6dae7126114041ccd1d13eddae403e3ed91ce39d7ade7e5d3bf0b87a62c808764e054482a8cf9300cf743d0649d19396c4ef72bc801695157745251fa9d6f0b6a965c4261108052594e4e029284ef2f66d432cf72ece8f0be21f58ada29c5964e3f39113b7c94ff4936f3ec49c7902a6621dcdc8c38ddea74b9277f3f4ea9abdb9a8bafd4322b0d507d4fef0efe97e1a0f6f97b3b5b4c8b6bc53743fe54feb20db533543571610b054c0590')
+# Load dataset from GitHub
+@st.cache
+def load_data():
+    url = "https://raw.githubusercontent.com/<your-username>/<repo-name>/main/<file-name>.csv"
+    return pd.read_csv(url)
 
-# Function to calculate MSE, Bias², and Variance
-def calculate_bias_variance(df, actual_col, predicted_cols):
-    results = []
-    actual = df[actual_col]
-    for col in predicted_cols:
-        predictions = df[col]
-        mse = np.mean((predictions - actual) ** 2)
-        bias_squared = (np.mean(predictions - actual)) ** 2
-        variance = np.var(predictions)
-        results.append({'Model': col, 'MSE': mse, 'Bias²': bias_squared, 'Variance': variance})
-    return pd.DataFrame(results)
+df = load_data()
 
-# Streamlit App
+# Display dataset
 st.title("MSE Decomposition: Bias and Variance Analysis")
+st.write("Dataset Preview")
+st.dataframe(df.head())
 
-# Sidebar to choose models
-model_options = ['Predicted_price1', 'Predicted_price2', 'Predicted_price3']
-selected_model = st.sidebar.selectbox("Select a model for detailed analysis:", model_options)
+# Define model formulas
+model_formulas = {
+    "Model 1: House_Price ~ Square_Footage": "House_Price ~ Square_Footage",
+    "Model 2: House_Price ~ Square_Footage + Num_Bedrooms + Num_Bathrooms": "House_Price ~ Square_Footage + Num_Bedrooms + Num_Bathrooms",
+    "Model 3: House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size": "House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size"
+}
 
-# Calculate metrics for all models
-results_df = calculate_bias_variance(df, 'House_Price', model_options)
+# Sidebar model selection
+st.sidebar.header("Model Selection")
+selected_model = st.sidebar.selectbox("Choose a model:", list(model_formulas.keys()))
+selected_formula = model_formulas[selected_model]
 
-# Display results
-st.subheader("Comparison Across Models")
-st.dataframe(results_df)
+# Fit the selected model
+model = smf.ols(formula=selected_formula, data=df).fit()
+df["Predicted"] = model.fittedvalues
 
-# Show detailed decomposition for the selected model
-selected_metrics = results_df[results_df['Model'] == selected_model].iloc[0]
-st.subheader(f"Detailed Decomposition for {selected_model}")
-st.write(f"**Mean Squared Error (MSE):** {selected_metrics['MSE']:.2f}")
-st.write(f"**Bias²:** {selected_metrics['Bias²']:.2f}")
-st.write(f"**Variance:** {selected_metrics['Variance']:.2f}")
-st.write(f"**Irreducible Error:** {selected_metrics['MSE'] - selected_metrics['Bias²'] - selected_metrics['Variance']:.2f}")
+# Show model summary
+st.subheader("Model Summary")
+st.text(model.summary())
 
-# Plot decomposition for the selected model
+# Calculate MSE, Bias², and Variance
+def calculate_bias_variance(df, actual_col, predicted_col):
+    actual = df[actual_col]
+    predicted = df[predicted_col]
+    mse = np.mean((predicted - actual) ** 2)
+    bias_squared = (np.mean(predicted - actual)) ** 2
+    variance = np.var(predicted)
+    return mse, bias_squared, variance
+
+mse, bias_squared, variance = calculate_bias_variance(df, "House_Price", "Predicted")
+
+# Display metrics
+st.subheader("Decomposition of MSE")
+st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+st.write(f"**Bias²:** {bias_squared:.2f}")
+st.write(f"**Variance:** {variance:.2f}")
+st.write(f"**Irreducible Error:** {mse - bias_squared - variance:.2f}")
+
+# Bar chart for MSE decomposition
 fig, ax = plt.subplots()
-labels = ['Bias²', 'Variance', 'Irreducible Error']
-values = [selected_metrics['Bias²'], selected_metrics['Variance'], selected_metrics['MSE'] - selected_metrics['Bias²'] - selected_metrics['Variance']]
-ax.bar(labels, values, color=['blue', 'orange', 'green'])
-ax.set_title(f"MSE Decomposition for {selected_model}")
+labels = ["Bias²", "Variance", "Irreducible Error"]
+values = [bias_squared, variance, mse - bias_squared - variance]
+ax.bar(labels, values, color=["blue", "orange", "green"])
+ax.set_title("MSE Decomposition")
 ax.set_ylabel("Error")
 st.pyplot(fig)
 
-# Additional visualization: Scatter Plot for predictions
-st.subheader(f"Scatter Plot: Actual vs {selected_model}")
+# Scatter plot for actual vs. predicted values
+st.subheader(f"Scatter Plot: Actual vs Predicted")
 plt.figure(figsize=(8, 6))
-plt.scatter(df['House_Price'], df[selected_model], alpha=0.7, label=selected_model, color='blue')
-plt.plot([df['House_Price'].min(), df['House_Price'].max()],
-         [df['House_Price'].min(), df['House_Price'].max()],
-         color='red', linestyle='--', label='Perfect Prediction')
-plt.title(f"Actual vs Predicted Prices ({selected_model})")
-plt.xlabel('Actual Prices')
-plt.ylabel('Predicted Prices')
+plt.scatter(df["House_Price"], df["Predicted"], alpha=0.7, label="Predicted", color="blue")
+plt.plot([df["House_Price"].min(), df["House_Price"].max()],
+         [df["House_Price"].min(), df["House_Price"].max()],
+         color="red", linestyle="--", label="Perfect Prediction")
+plt.title("Actual vs Predicted Prices")
+plt.xlabel("Actual Prices")
+plt.ylabel("Predicted Prices")
 plt.legend()
 st.pyplot(plt)
+
+# Residual plot
+st.subheader("Residual Plot")
+df["Residual"] = df["House_Price"] - df["Predicted"]
+plt.figure(figsize=(8, 6))
+plt.scatter(df["Predicted"], df["Residual"], alpha=0.7)
+plt.axhline(0, color="red", linestyle="--")
+plt.title("Residual Plot")
+plt.xlabel("Predicted Prices")
+plt.ylabel("Residuals")
+st.pyplot(plt)
+
+# Sidebar filters (optional)
+st.sidebar.header("Filters")
+min_year_built = st.sidebar.slider("Minimum Year Built", int(df["Year_Built"].min()), int(df["Year_Built"].max()), int(df["Year_Built"].min()))
+filtered_df = df[df["Year_Built"] >= min_year_built]
+st.write(f"Filtered Data: {len(filtered_df)} rows")

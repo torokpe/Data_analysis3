@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error
 # Load dataset from GitHub
 @st.cache_data
 def load_data():
-    url = https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"
+    url = "https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"
     return pd.read_csv(url)
 
 df = load_data()

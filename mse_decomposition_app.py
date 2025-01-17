@@ -16,8 +16,8 @@ def load_data():
 df = load_data()
 
 # Sidebar: Add a title and description
-st.sidebar.title("Interactive Dashboard")
-st.sidebar.write("Use the dropdown and filters below to analyze different models and subsets of the data.")
+st.sidebar.title("Control panel")
+st.sidebar.write("Use the Control panel below to analyze different models and subsets of the data.")
 
 # Sidebar: Interactive Model Selection
 model_formulas = {

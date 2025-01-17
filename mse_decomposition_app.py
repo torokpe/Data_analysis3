@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import mean_squared_error
 
 # Load dataset from GitHub
 @st.cache_data
@@ -25,80 +27,87 @@ model_formulas = {
 selected_model = st.sidebar.selectbox("Choose a model:", list(model_formulas.keys()))
 selected_formula = model_formulas[selected_model]
 
-# Sidebar: Filtering by Year_Built
-min_year_built = st.sidebar.slider(
-    "Minimum Year Built",
-    int(df["Year_Built"].min()),
-    int(df["Year_Built"].max()),
-    int(df["Year_Built"].min())
+# Sidebar: Train-Test Split Ratio Slider
+st.sidebar.subheader("Train-Test Split")
+train_ratio = st.sidebar.slider("Training Set Ratio", 0.5, 0.9, 0.8)
+
+# Sidebar: Model Evaluation Method
+st.sidebar.subheader("Evaluation Method")
+evaluation_method = st.sidebar.radio(
+    "Choose evaluation method:",
+    ("Direct Testing (Train-Test Split)", "Indirect Testing (BIC or CV)")
 )
-filtered_df = df[df["Year_Built"] >= min_year_built]
 
-# Sidebar: Checkbox to show filtered data
-if st.sidebar.checkbox("Show Filtered Data"):
-    st.subheader("Filtered Dataset")
-    st.dataframe(filtered_df)
+# Split data into train and test sets
+train_data, test_data = train_test_split(df, train_size=train_ratio, random_state=42)
 
-# Fit the selected model using filtered data
-model = smf.ols(formula=selected_formula, data=filtered_df).fit()
-filtered_df["Predicted"] = model.fittedvalues
+# Fit the selected model
+model = smf.ols(formula=selected_formula, data=train_data).fit()
+train_data["Predicted"] = model.fittedvalues
+test_data["Predicted"] = model.predict(test_data)
 
-# Main Title and Dataset Preview
-st.title("MSE Decomposition: Bias and Variance Analysis")
-st.write("Dataset Preview")
-st.dataframe(df.head())
+# Evaluation Metrics
+def calculate_metrics(actual, predicted):
+    mse = mean_squared_error(actual, predicted)
+    return mse
 
-# Show model summary
-st.subheader(f"Model Summary: {selected_model}")
-st.text(model.summary())
+# MSE Decomposition and Evaluation
+if evaluation_method == "Direct Testing (Train-Test Split)":
+    mse_train = calculate_metrics(train_data["House_Price"], train_data["Predicted"])
+    mse_test = calculate_metrics(test_data["House_Price"], test_data["Predicted"])
+    bias_squared = (test_data["Predicted"].mean() - test_data["House_Price"].mean()) ** 2
+    variance = test_data["Predicted"].var()
+else:  # Indirect Testing (BIC or Cross-Validation)
+    bic = model.bic
+    mse_cv = -np.mean(cross_val_score(
+        smf.ols(formula=selected_formula, data=df).fit(),
+        df.drop("House_Price", axis=1),
+        df["House_Price"],
+        scoring="neg_mean_squared_error",
+        cv=5
+    ))
+    mse_train, mse_test, bias_squared, variance = mse_cv, mse_cv, None, None
 
-# Function to calculate MSE, Bias², and Variance
-def calculate_bias_variance(df, actual_col, predicted_col):
-    actual = df[actual_col]
-    predicted = df[predicted_col]
-    mse = np.mean((predicted - actual) ** 2)
-    bias_squared = (np.mean(predicted - actual)) ** 2
-    variance = np.var(predicted)
-    return mse, bias_squared, variance
+# Display Metrics
+st.subheader("Model Performance")
+if evaluation_method == "Direct Testing (Train-Test Split)":
+    st.write(f"**MSE (Train):** {mse_train:.2f}")
+    st.write(f"**MSE (Test):** {mse_test:.2f}")
+    st.write(f"**Bias² (Test):** {bias_squared:.2f}")
+    st.write(f"**Variance (Test):** {variance:.2f}")
+else:
+    st.write(f"**BIC:** {bic:.2f}")
+    st.write(f"**Cross-Validation MSE:** {mse_cv:.2f}")
 
-# Calculate MSE, Bias², and Variance
-mse, bias_squared, variance = calculate_bias_variance(filtered_df, "House_Price", "Predicted")
+# Visualization: Bar Chart for MSE Decomposition
+if evaluation_method == "Direct Testing (Train-Test Split)":
+    st.subheader("Bar Chart: MSE Decomposition (Test Data)")
+    fig, ax = plt.subplots()
+    labels = ["Bias²", "Variance", "Irreducible Error"]
+    values = [bias_squared, variance, mse_test - bias_squared - variance]
+    ax.bar(labels, values, color=["blue", "orange", "green"])
+    ax.set_title("MSE Decomposition")
+    ax.set_ylabel("Error")
+    st.pyplot(fig)
 
-# Display metrics
-st.subheader("Decomposition of MSE")
-st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-st.write(f"**Bias²:** {bias_squared:.2f}")
-st.write(f"**Variance:** {variance:.2f}")
-st.write(f"**Irreducible Error:** {mse - bias_squared - variance:.2f}")
-
-# Visualization: Bar chart for MSE decomposition
-st.subheader("Bar Chart: MSE Decomposition")
-fig, ax = plt.subplots()
-labels = ["Bias²", "Variance", "Irreducible Error"]
-values = [bias_squared, variance, mse - bias_squared - variance]
-ax.bar(labels, values, color=["blue", "orange", "green"])
-ax.set_title("MSE Decomposition")
-ax.set_ylabel("Error")
-st.pyplot(fig)
-
-# Visualization: Scatter plot for Actual vs Predicted
+# Visualization: Scatter Plot for Actual vs Predicted
 st.subheader(f"Scatter Plot: Actual vs Predicted ({selected_model})")
 plt.figure(figsize=(8, 6))
-plt.scatter(filtered_df["House_Price"], filtered_df["Predicted"], alpha=0.7, label="Predicted", color="blue")
-plt.plot([filtered_df["House_Price"].min(), filtered_df["House_Price"].max()],
-         [filtered_df["House_Price"].min(), filtered_df["House_Price"].max()],
+plt.scatter(test_data["House_Price"], test_data["Predicted"], alpha=0.7, label="Predicted", color="blue")
+plt.plot([test_data["House_Price"].min(), test_data["House_Price"].max()],
+         [test_data["House_Price"].min(), test_data["House_Price"].max()],
          color="red", linestyle="--", label="Perfect Prediction")
-plt.title("Actual vs Predicted Prices")
+plt.title("Actual vs Predicted Prices (Test Data)")
 plt.xlabel("Actual Prices")
 plt.ylabel("Predicted Prices")
 plt.legend()
 st.pyplot(plt)
 
-# Visualization: Residual plot
-st.subheader("Residual Plot")
-filtered_df["Residual"] = filtered_df["House_Price"] - filtered_df["Predicted"]
+# Visualization: Residual Plot
+st.subheader("Residual Plot (Test Data)")
+test_data["Residual"] = test_data["House_Price"] - test_data["Predicted"]
 plt.figure(figsize=(8, 6))
-plt.scatter(filtered_df["Predicted"], filtered_df["Residual"], alpha=0.7, color="purple")
+plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.7, color="purple")
 plt.axhline(0, color="red", linestyle="--")
 plt.title("Residual Plot")
 plt.xlabel("Predicted Prices")

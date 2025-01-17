@@ -10,14 +10,14 @@ from sklearn.metrics import mean_squared_error
 # Load dataset from GitHub
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"
+    url = https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"
     return pd.read_csv(url)
 
 df = load_data()
 
 # Sidebar: Add a title and description
-st.sidebar.title("Control panel")
-st.sidebar.write("Use the Control panel below to analyze different models and subsets of the data.")
+st.sidebar.title("Interactive Dashboard")
+st.sidebar.write("Use the dropdown and filters below to analyze different models and subsets of the data.")
 
 # Sidebar: Interactive Model Selection
 model_formulas = {
@@ -79,16 +79,33 @@ else:  # Indirect Testing (BIC or Cross-Validation)
     bic, mse_cv = calculate_bic_and_cv(df, selected_formula, "House_Price")
     mse_train, mse_test, bias_squared, variance = None, mse_cv, None, None
 
-# Display Metrics
-st.subheader("Model Performance")
+# Display Metrics as Dashboard Highlights
+st.subheader("Model Performance Metrics")
+
 if evaluation_method == "Direct Testing (Train-Test Split)":
-    st.write(f"**MSE (Train):** {mse_train:.2f}")
-    st.write(f"**MSE (Test):** {mse_test:.2f}")
-    st.write(f"**Bias² (Test):** {bias_squared:.2f}")
-    st.write(f"**Variance (Test):** {variance:.2f}")
-else:
-    st.write(f"**BIC:** {bic:.2f}")
-    st.write(f"**Cross-Validation MSE:** {mse_cv:.2f}")
+    # Row layout for metrics
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric(label="MSE (Train)", value=f"{mse_train:.2f}")
+
+    with col2:
+        st.metric(label="MSE (Test)", value=f"{mse_test:.2f}")
+
+    with col3:
+        st.metric(label="Bias² (Test)", value=f"{bias_squared:.2f}")
+
+    with col4:
+        st.metric(label="Variance (Test)", value=f"{variance:.2f}")
+
+else:  # Indirect Testing (BIC or CV)
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(label="BIC", value=f"{bic:.2f}")
+
+    with col2:
+        st.metric(label="Cross-Validation MSE", value=f"{mse_cv:.2f}")
 
 # Visualization: Bar Chart for MSE Decomposition
 if evaluation_method == "Direct Testing (Train-Test Split)":

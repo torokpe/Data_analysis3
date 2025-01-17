@@ -4,6 +4,7 @@ import numpy as np
 import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
 # Load dataset from GitHub
@@ -41,32 +42,42 @@ evaluation_method = st.sidebar.radio(
 # Split data into train and test sets
 train_data, test_data = train_test_split(df, train_size=train_ratio, random_state=42)
 
-# Fit the selected model
+# Fit the selected model using statsmodels
 model = smf.ols(formula=selected_formula, data=train_data).fit()
 train_data["Predicted"] = model.fittedvalues
 test_data["Predicted"] = model.predict(test_data)
 
-# Evaluation Metrics
+# Function to calculate metrics
 def calculate_metrics(actual, predicted):
     mse = mean_squared_error(actual, predicted)
     return mse
 
-# MSE Decomposition and Evaluation
+# Function to calculate BIC and Cross-Validation MSE
+def calculate_bic_and_cv(df, formula, target_col):
+    # Calculate BIC using the full dataset
+    model = smf.ols(formula=formula, data=df).fit()
+    bic = model.bic
+
+    # Prepare features (X) and target (y) for cross-validation
+    X = df.drop(columns=[target_col])
+    X = pd.get_dummies(X, drop_first=True)  # One-hot encode categorical variables if any
+    y = df[target_col]
+
+    # Perform Cross-Validation with sklearn
+    sklearn_model = LinearRegression()
+    mse_cv = -np.mean(cross_val_score(sklearn_model, X, y, scoring="neg_mean_squared_error", cv=5))
+
+    return bic, mse_cv
+
+# Calculate metrics based on the evaluation method
 if evaluation_method == "Direct Testing (Train-Test Split)":
     mse_train = calculate_metrics(train_data["House_Price"], train_data["Predicted"])
     mse_test = calculate_metrics(test_data["House_Price"], test_data["Predicted"])
     bias_squared = (test_data["Predicted"].mean() - test_data["House_Price"].mean()) ** 2
     variance = test_data["Predicted"].var()
 else:  # Indirect Testing (BIC or Cross-Validation)
-    bic = model.bic
-    mse_cv = -np.mean(cross_val_score(
-        smf.ols(formula=selected_formula, data=df).fit(),
-        df.drop("House_Price", axis=1),
-        df["House_Price"],
-        scoring="neg_mean_squared_error",
-        cv=5
-    ))
-    mse_train, mse_test, bias_squared, variance = mse_cv, mse_cv, None, None
+    bic, mse_cv = calculate_bic_and_cv(df, selected_formula, "House_Price")
+    mse_train, mse_test, bias_squared, variance = None, mse_cv, None, None
 
 # Display Metrics
 st.subheader("Model Performance")

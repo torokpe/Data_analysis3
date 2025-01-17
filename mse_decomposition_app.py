@@ -16,10 +16,10 @@ def load_data():
 df = load_data()
 
 # Sidebar: Add a title and description
-st.markdown("<h1 style='text-align: center;'>Model Performance & MSE Decomposition \n </h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Model Performance & MSE Decomposition</h1>", unsafe_allow_html=True)
 st.markdown("<h1 style='text-align: center;'>  </h1>", unsafe_allow_html=True)
 
-st.sidebar.write("Use the dropdown and filters below to analyze different models and subsets of the data.")
+st.sidebar.write("Use the control panel to set model specifications.")
 
 # Sidebar: Interactive Model Selection
 model_formulas = {
@@ -32,7 +32,7 @@ selected_formula = model_formulas[selected_model]
 
 # Sidebar: Train-Test Split Ratio Slider
 st.sidebar.subheader("Train-Test Split")
-train_ratio = st.sidebar.slider("Training Set Ratio", 0.5, 0.9, 0.8)
+train_ratio = st.sidebar.slider("Set training-set ratio", 0.5, 0.9, 0.8)
 
 # Sidebar: Model Evaluation Method
 st.sidebar.subheader("Evaluation Method")

@@ -83,29 +83,29 @@ else:  # Indirect Testing (BIC or Cross-Validation)
 st.subheader("Model Performance Metrics")
 
 if evaluation_method == "Direct Testing (Train-Test Split)":
-    # Row layout for metrics
-    col1, col2, col3, col4 = st.columns(4)
+    # Row layout for metrics with increased column width
+    col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1.5])  # Wider columns
 
     with col1:
-        st.metric(label="MSE (Train)", value=f"{mse_train:.2f}")
+        st.metric(label="MSE (Train)", value=f"{mse_train/1e6:.2f}M")  # Abbreviate to millions
 
     with col2:
-        st.metric(label="MSE (Test)", value=f"{mse_test:.2f}")
+        st.metric(label="MSE (Test)", value=f"{mse_test/1e6:.2f}M")  # Abbreviate to millions
 
     with col3:
-        st.metric(label="Bias² (Test)", value=f"{bias_squared:.2f}")
+        st.metric(label="Bias² (Test)", value=f"{bias_squared/1e6:.2f}M")  # Abbreviate to millions
 
     with col4:
-        st.metric(label="Variance (Test)", value=f"{variance:.2f}")
+        st.metric(label="Variance (Test)", value=f"{variance/1e6:.2f}M")  # Abbreviate to millions
 
 else:  # Indirect Testing (BIC or CV)
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1.5, 1.5])  # Wider columns for fewer metrics
 
     with col1:
         st.metric(label="BIC", value=f"{bic:.2f}")
 
     with col2:
-        st.metric(label="Cross-Validation MSE", value=f"{mse_cv:.2f}")
+        st.metric(label="Cross-Validation MSE", value=f"{mse_cv/1e6:.2f}M")  # Abbreviate to millions
 
 # Visualization: Bar Chart for MSE Decomposition
 if evaluation_method == "Direct Testing (Train-Test Split)":

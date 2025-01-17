@@ -3,3 +3,5 @@ pandas
 numpy
 matplotlib
 statsmodels
+sklearn.model_selection
+sklearn.metrics

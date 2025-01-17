@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # Load dataset from GitHub
 @st.cache
 def load_data():
-    url = "https://raw.githubusercontent.com/<your-username>/<repo-name>/main/<file-name>.csv"
+    url = "https://raw.githubusercontent.com/torokpe/Data_analysis3/refs/heads/main/house_prices.csv"
     return pd.read_csv(url)
 
 df = load_data()

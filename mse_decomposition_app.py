@@ -119,7 +119,7 @@ if evaluation_method == "Direct Testing (Train-Test Split)":
     st.pyplot(fig)
 
 # Visualization: Scatter Plot for Actual vs Predicted
-st.subheader(f"Scatter Plot: Actual vs Predicted ({selected_model})")
+st.subheader(f"Actual vs Predicted")
 plt.figure(figsize=(8, 6))
 plt.scatter(test_data["House_Price"], test_data["Predicted"], alpha=0.7, label="Predicted", color="blue")
 plt.plot([test_data["House_Price"].min(), test_data["House_Price"].max()],

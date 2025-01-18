@@ -15,11 +15,33 @@ def load_data():
 
 df = load_data()
 
-# Sidebar: Add a title and description
-st.markdown("<h1 style='text-align: center;'>Model Performance & MSE Decomposition</h1>", unsafe_allow_html=True)
+# Add CSS for centering content
 st.markdown(
     """
-    <p style='text-align: center; font-size:18px;'>
+    <style>
+    .center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+    }
+    .stApp {
+        align-items: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Start centered content
+st.markdown('<div class="center">', unsafe_allow_html=True)
+
+# Title and description
+st.markdown("<h1>Model Performance & MSE Decomposition</h1>", unsafe_allow_html=True)
+st.markdown(
+    """
+    <p style='font-size:18px;'>
         The purpose of this dashboard is to provide a visualization of the decomposition of Mean Squared Error (MSE) for three different predictive models. 
         By breaking down MSE into its key components—Bias, Variance, and Irreducible Error—the dashboard allows users to understand how each model performs and where improvements might be made. 
         For the app an online dataset was utilized on house prices, where the predictor variables consist of various characteristics of the houses, such as size, location, and neighbourhood rating etc.
@@ -27,29 +49,26 @@ st.markdown(
         <a href='https://www.kaggle.com/datasets/prokshitha/home-value-insights' target='_blank' style='color:blue; text-decoration: none;'>this link</a>.
     </p>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
+# Data for the table
 models_data = {
     "": ["Squarefootage", "# of bathrooms", "# of bedrooms", "Garage size", "Lot size", "Neighborhood quality", "Year built"],
     "Model I.": ["YES", "YES", "", "", "", "", ""],
     "Model II.": ["YES", "YES", "YES", "", "", "", ""],
-    "Model III.": ["YES", "YES", "YES", "YES", "YES", "YES", "YES"]
+    "Model III.": ["YES", "YES", "YES", "YES", "YES", "YES", "YES"],
 }
 
-# Create a DataFrame
+# Create and display the table
 df_models = pd.DataFrame(models_data)
-
-# Display the table in Streamlit
 st.table(df_models)
-
-st.sidebar.write("Use the control panel to set model specifications.")
 
 # Sidebar: Interactive Model Selection
 model_formulas = {
     "Model 1: House_Price ~ Square_Footage": "House_Price ~ Square_Footage",
     "Model 2: House_Price ~ Square_Footage + Num_Bedrooms + Num_Bathrooms": "House_Price ~ Square_Footage + Num_Bedrooms + Num_Bathrooms",
-    "Model 3: House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size": "House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size"
+    "Model 3: House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size": "House_Price ~ Square_Footage + Num_Bedrooms + Year_Built + Neighborhood_Quality + Num_Bathrooms + Lot_Size + Garage_Size",
 }
 selected_model = st.sidebar.selectbox("Choose a model:", list(model_formulas.keys()))
 selected_formula = model_formulas[selected_model]
@@ -62,7 +81,7 @@ train_ratio = st.sidebar.slider("Set training-set ratio", 0.5, 0.9, 0.8)
 st.sidebar.subheader("Evaluation Method")
 evaluation_method = st.sidebar.radio(
     "Choose evaluation method:",
-    ("Direct Testing (Train-Test Split)", "Indirect Testing (BIC or CV)")
+    ("Direct Testing (Train-Test Split)", "Indirect Testing (BIC or CV)"),
 )
 
 # Split data into train and test sets
@@ -80,88 +99,43 @@ def calculate_metrics(actual, predicted):
 
 # Function to calculate BIC and Cross-Validation MSE
 def calculate_bic_and_cv(df, formula, target_col):
-    # Calculate BIC using the full dataset
     model = smf.ols(formula=formula, data=df).fit()
     bic = model.bic
-
-    # Prepare features (X) and target (y) for cross-validation
     X = df.drop(columns=[target_col])
-    X = pd.get_dummies(X, drop_first=True)  # One-hot encode categorical variables if any
     y = df[target_col]
-
-    # Perform Cross-Validation with sklearn
     sklearn_model = LinearRegression()
     mse_cv = -np.mean(cross_val_score(sklearn_model, X, y, scoring="neg_mean_squared_error", cv=5))
-
     return bic, mse_cv
 
-# Calculate metrics based on the evaluation method
 if evaluation_method == "Direct Testing (Train-Test Split)":
     mse_train = calculate_metrics(train_data["House_Price"], train_data["Predicted"])
     mse_test = calculate_metrics(test_data["House_Price"], test_data["Predicted"])
     bias_squared = (test_data["Predicted"].mean() - test_data["House_Price"].mean()) ** 2
     variance = test_data["Predicted"].var()
-else:  # Indirect Testing (BIC or Cross-Validation)
+else:
     bic, mse_cv = calculate_bic_and_cv(df, selected_formula, "House_Price")
     mse_train, mse_test, bias_squared, variance = None, mse_cv, None, None
 
-# Display Metrics as Dashboard Highlights
-st.markdown("<h2 style='text-align: center;'>Key performance metrics</h2>", unsafe_allow_html=True)
+st.markdown("<h2>Key Performance Metrics</h2>", unsafe_allow_html=True)
 
 if evaluation_method == "Direct Testing (Train-Test Split)":
-    # Row layout for metrics with increased column width
-    col1, col2, col3, col4 = st.columns([1.5, 1.5, 1.5, 1.5])  # Wider columns
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("MSE (Train)", f"{mse_train:.2f}")
+    col2.metric("MSE (Test)", f"{mse_test:.2f}")
+    col3.metric("Bias² (Test)", f"{bias_squared:.2f}")
+    col4.metric("Variance (Test)", f"{variance:.2f}")
+else:
+    col1, col2 = st.columns(2)
+    col1.metric("BIC", f"{bic:.2f}")
+    col2.metric("CV MSE", f"{mse_cv:.2f}")
 
-    with col1:
-        st.metric(label="MSE (Train)", value=f"{mse_train/1e6:.2f}M")  # Abbreviate to millions
-
-    with col2:
-        st.metric(label="MSE (Test)", value=f"{mse_test/1e6:.2f}M")  # Abbreviate to millions
-
-    with col3:
-        st.metric(label="Bias² (Test)", value=f"{bias_squared/1e6:.2f}M")  # Abbreviate to millions
-
-    with col4:
-        st.metric(label="Variance (Test)", value=f"{variance/1e6:.2f}M")  # Abbreviate to millions
-
-else:  # Indirect Testing (BIC or CV)
-    col1, col2 = st.columns([1.5, 1.5])  # Wider columns for fewer metrics
-
-    with col1:
-        st.metric(label="BIC", value=f"{bic:.2f}")
-
-    with col2:
-        st.metric(label="Cross-Validation MSE", value=f"{mse_cv/1e6:.2f}M")  # Abbreviate to millions
-st.markdown("<h3 style='text-align: center;'>  </h3>", unsafe_allow_html=True)
-
-# Visualization: Bar Chart for MSE Decomposition
+# Bar chart for MSE decomposition
 if evaluation_method == "Direct Testing (Train-Test Split)":
-    st.markdown("<h2 style='text-align: center;'> MSE Decomposition </h2>", unsafe_allow_html=True)
+    st.markdown("<h2>MSE Decomposition</h2>", unsafe_allow_html=True)
     fig, ax = plt.subplots()
     labels = ["Bias²", "Variance", "Irreducible Error"]
     values = [bias_squared, variance, mse_test - bias_squared - variance]
-    ax.bar(labels, values, color=["#C00000", "#C00000", "#D07C74"])
-    ax.set_ylabel("Error")
+    ax.bar(labels, values)
     st.pyplot(fig)
 
-# Visualization: Scatter Plot for Actual vs Predicted
-st.markdown("<h2 style='text-align: center;'>Actual vs Predicted Prices (Test Data)</h2>", unsafe_allow_html=True)
-plt.figure(figsize=(8, 6))
-plt.scatter(test_data["House_Price"], test_data["Predicted"], alpha=0.5, label="Predicted", color="#156082")
-plt.plot([test_data["House_Price"].min(), test_data["House_Price"].max()],
-         [test_data["House_Price"].min(), test_data["House_Price"].max()],
-         color="#FFC000", linestyle="--", label="Perfect Prediction")
-plt.xlabel("Actual Prices")
-plt.ylabel("Predicted Prices")
-plt.legend()
-st.pyplot(plt)
-
-# Visualization: Residual Plot
-st.markdown("<h2 style='text-align: center;'> Residual Plot </h2>", unsafe_allow_html=True)
-test_data["Residual"] = test_data["House_Price"] - test_data["Predicted"]
-plt.figure(figsize=(8, 6))
-plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.5, color="#156082")
-plt.axhline(0, color="#FFC000", linestyle="--")
-plt.xlabel("Predicted Prices")
-plt.ylabel("Residuals")
-st.pyplot(plt)
+st.markdown("</div>", unsafe_allow_html=True)  # End centered content

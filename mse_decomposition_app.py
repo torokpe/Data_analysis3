@@ -159,7 +159,7 @@ plt.legend()
 st.pyplot(plt)
 
 # Visualization: Residual Plot
-st.subheader("Residual Plot (Test Data)")
+st.markdown("<h2 style='text-align: center;'> Residuals performance </h2>", unsafe_allow_html=True)
 test_data["Residual"] = test_data["House_Price"] - test_data["Predicted"]
 plt.figure(figsize=(8, 6))
 plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.7, color="#156082")

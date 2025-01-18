@@ -148,7 +148,7 @@ if evaluation_method == "Direct Testing (Train-Test Split)":
 # Visualization: Scatter Plot for Actual vs Predicted
 st.markdown("<h3 style='text-align: center;'>Model Performance Metrics</h3>", unsafe_allow_html=True)
 plt.figure(figsize=(8, 6))
-plt.scatter(test_data["House_Price"], test_data["Predicted"], alpha=0.7, label="Predicted", color="#156082")
+plt.scatter(test_data["House_Price"], test_data["Predicted"], alpha=0.5, label="Predicted", color="#156082")
 plt.plot([test_data["House_Price"].min(), test_data["House_Price"].max()],
          [test_data["House_Price"].min(), test_data["House_Price"].max()],
          color="#FFC000", linestyle="--", label="Perfect Prediction")
@@ -162,7 +162,7 @@ st.pyplot(plt)
 st.markdown("<h2 style='text-align: center;'> Residuals performance </h2>", unsafe_allow_html=True)
 test_data["Residual"] = test_data["House_Price"] - test_data["Predicted"]
 plt.figure(figsize=(8, 6))
-plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.7, color="#156082")
+plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.5, color="#156082")
 plt.axhline(0, color="#FFC000", linestyle="--")
 plt.title("Residual Plot")
 plt.xlabel("Predicted Prices")

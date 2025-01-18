@@ -157,12 +157,11 @@ plt.legend()
 st.pyplot(plt)
 
 # Visualization: Residual Plot
-st.markdown("<h2 style='text-align: center;'> Residuals performance </h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'> Residual Plot </h2>", unsafe_allow_html=True)
 test_data["Residual"] = test_data["House_Price"] - test_data["Predicted"]
 plt.figure(figsize=(8, 6))
 plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.5, color="#156082")
 plt.axhline(0, color="#FFC000", linestyle="--")
-plt.title("Residual Plot")
 plt.xlabel("Predicted Prices")
 plt.ylabel("Residuals")
 st.pyplot(plt)

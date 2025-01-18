@@ -29,6 +29,20 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+models_data = {
+    "": ["Squarefootage", "# of bathrooms", "# of bedrooms", "Garage size", "Lot size", "Neighborhood quality", "Year built"],
+    "Model I.": ["YES", "YES", "", "", "", "", ""],
+    "Model II.": ["YES", "YES", "YES", "", "", "", ""],
+    "Model III.": ["YES", "YES", "YES", "YES", "YES", "YES", "YES"]
+}
+
+# Create a DataFrame
+df_models = pd.DataFrame(models_data)
+
+# Display the table in Streamlit
+st.table(df_models)
+
 st.sidebar.write("Use the control panel to set model specifications.")
 
 # Sidebar: Interactive Model Selection

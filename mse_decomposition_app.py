@@ -22,7 +22,7 @@ st.markdown(
     <p style='text-align: center; font-size:18px;'>
         The purpose of this dashboard is to provide a visualization of the decomposition of Mean Squared Error (MSE) for three different predictive models. 
         By breaking down MSE into its key components—Bias, Variance, and Irreducible Error—the dashboard allows users to understand how each model performs and where improvements might be made. 
-        The app is powered by an online dataset on house prices, where the predictor variables consist of various characteristics of the houses, such as size, location, and neighbourhood rating etc.
+        For the app an online dataset was utilized on house prices, where the predictor variables consist of various characteristics of the houses, such as size, location, and neighbourhood rating etc.
         The original dataset is sourced from 
         <a href='https://www.kaggle.com/datasets/prokshitha/home-value-insights' target='_blank' style='color:blue; text-decoration: none;'>this link</a>.
     </p>

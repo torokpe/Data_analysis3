@@ -166,6 +166,6 @@ plt.xlabel("Predicted Prices")
 plt.ylabel("Residuals")
 st.pyplot(plt)
 
-st.markdown("<h1 style='text-align: center;'>Model Performance & MSE Decomposition</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'> </h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>The ChatGPT OpenAI platform was primarily used for coding and commenting during the creation of the dashboard.</p>", unsafe_allow_html=True)
 

@@ -141,18 +141,16 @@ if evaluation_method == "Direct Testing (Train-Test Split)":
     labels = ["Bias²", "Variance", "Irreducible Error"]
     values = [bias_squared, variance, mse_test - bias_squared - variance]
     ax.bar(labels, values, color=["#C00000", "#C00000", "#D07C74"])
-    ax.set_title("MSE Decomposition")
     ax.set_ylabel("Error")
     st.pyplot(fig)
 
 # Visualization: Scatter Plot for Actual vs Predicted
-st.markdown("<h3 style='text-align: center;'>Model Performance Metrics</h3>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>Actual vs Predicted Prices (Test Data)</h2>", unsafe_allow_html=True)
 plt.figure(figsize=(8, 6))
 plt.scatter(test_data["House_Price"], test_data["Predicted"], alpha=0.5, label="Predicted", color="#156082")
 plt.plot([test_data["House_Price"].min(), test_data["House_Price"].max()],
          [test_data["House_Price"].min(), test_data["House_Price"].max()],
          color="#FFC000", linestyle="--", label="Perfect Prediction")
-plt.title("Actual vs Predicted Prices (Test Data)")
 plt.xlabel("Actual Prices")
 plt.ylabel("Predicted Prices")
 plt.legend()

@@ -138,7 +138,7 @@ st.pyplot(plt)
 # Visualization: Residual Plot
 st.subheader("Residual Plot (Test Data)")
 test_data["Residual"] = test_data["House_Price"] - test_data["Predicted"]
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(8, 6))
 plt.scatter(test_data["Predicted"], test_data["Residual"], alpha=0.7, color="#156082")
 plt.axhline(0, color="#FFC000", linestyle="--")
 plt.title("Residual Plot")

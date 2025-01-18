@@ -118,7 +118,7 @@ if evaluation_method == "Direct Testing (Train-Test Split)":
     fig, ax = plt.subplots()
     labels = ["Bias²", "Variance", "Irreducible Error"]
     values = [bias_squared, variance, mse_test - bias_squared - variance]
-    ax.bar(labels, values, color=["blue", "orange", "green"])
+    ax.bar(labels, values, color=["#C00000", "#C00000", "#D07C74"])
     ax.set_title("MSE Decomposition")
     ax.set_ylabel("Error")
     st.pyplot(fig)
